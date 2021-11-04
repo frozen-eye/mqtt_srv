@@ -34,3 +34,39 @@ Run the server listen on port 9999:
 ```
 cd mqtt_srv/build && mqtt_srv 9999
 ```
+
+Simple nodejs client for test
+
+```js
+var uuid = require('uuid');
+var mqtt = require('mqtt');
+var client = mqtt.connect('mqtt://127.0.0.1:9999', {
+  clientId: uuid.v4()
+});
+
+const data = {
+  id: uuid.v4(),
+  temperature: 10,
+  pressure: 750,
+  humidity: 80
+};
+
+client.on('connect', function () {
+  client.subscribe('status', { qos: 2 }, function (err) {
+    if (!err) {
+      client.publish('update', JSON.stringify(data), { qos: 2 })
+    }
+  });
+});
+
+client.on('message', function (topic, message) {
+  // message is Buffer
+  console.log(message.toString());
+  // client.end()
+});
+
+setInterval(() => {
+  // do nothing loop
+  client.publish('presence', JSON.stringify(data), { qos: 2 });
+}, 1000);
+```
